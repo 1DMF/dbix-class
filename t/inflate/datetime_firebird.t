@@ -8,8 +8,8 @@ use DBICTest;
 use Scope::Guard ();
 
 my $env2optdep = {
-  DBICTEST_FIREBIRD => 'test_rdbms_firebird',
-  DBICTEST_FIREBIRD_INTERBASE => 'test_rdbms_firebird_interbase',
+#  DBICTEST_FIREBIRD => 'test_rdbms_firebird',
+#  DBICTEST_FIREBIRD_INTERBASE => 'test_rdbms_firebird_interbase',
   DBICTEST_FIREBIRD_ODBC => 'test_rdbms_firebird_odbc',
 };
 
