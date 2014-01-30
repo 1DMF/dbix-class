@@ -65,7 +65,7 @@ package # hide from PAUSE
   DBIx::Class::Storage::DBI::ODBC::Firebird::DateTime::Format;
 
 # inherit parse/format date
-our @ISA = 'DBIx::Class::Storage::DBI::InterBase::DateTime::Format';
+use base 'DBIx::Class::Storage::DBI::InterBase::DateTime::Format';
 
 my $timestamp_format = '%Y-%m-%d %H:%M:%S.%4N'; # %F %T
 my $timestamp_parser;
