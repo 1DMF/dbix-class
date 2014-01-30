@@ -16,7 +16,7 @@ export NUMTHREADS="$(( $(perl -0777 -n -e 'print (/ (?: .+ ^ processor \s+ : \s+
 export CACHE_DIR="/tmp/poormanscache"
 
 # install some common tools from APT, more below unless CLEANTEST
-apt_install libapp-nopaste-perl tree apt-transport-https firebird2.5-super firebird2.5-dev expect
+apt_install libapp-nopaste-perl tree apt-transport-https firebird2.5-super firebird2.5-dev tdsodbc libsqliteodbc unixodbc-dev freetds-dev  expect
 
 # FIXME - the debian package is oddly broken - uses a bin/env based shebang
 # so nothing works under a brew. Fix here until #debian-perl patches it up
@@ -60,6 +60,25 @@ if [[ "$CLEANTEST" != "true" ]]; then
     if run_or_err "Creating Firebird TestDB" \
       "echo \"CREATE DATABASE '/var/lib/firebird/2.5/data/dbic_test.fdb';\" | sudo isql-fb -u sysdba -p 123"
     then
+
+      run_or_err "Building FireBird ODBC driver" '
+        cd "$(mktemp -d)"
+        wget -qO- http://sourceforge.net/projects/firebird/files/firebird-ODBC-driver/2.0.2-Release/OdbcFb-Source-2.0.2.153.gz/download | tar -zx
+        cd Builds/Gcc.lin
+        perl -p -i -e "s|/usr/lib64|/usr/lib/x86_64-linux-gnu|g" ../makefile.environ
+        make -f makefile.linux
+        sudo make -f makefile.linux install
+      '
+
+      sudo bash -c 'cat >> /etc/odbcinst.ini' <<< "
+[Firebird]
+Description     = InterBase/Firebird ODBC Driver
+Driver          = /usr/lib/x86_64-linux-gnu/libOdbcFb.so
+Setup           = /usr/lib/x86_64-linux-gnu/libOdbcFb.so
+Threading       = 1
+FileUsage       = 1
+"
+
       export DBICTEST_FIREBIRD_DSN=dbi:Firebird:dbname=/var/lib/firebird/2.5/data/dbic_test.fdb
       export DBICTEST_FIREBIRD_USER=SYSDBA
       export DBICTEST_FIREBIRD_PASS=123
@@ -68,9 +87,12 @@ if [[ "$CLEANTEST" != "true" ]]; then
       export DBICTEST_FIREBIRD_INTERBASE_USER=SYSDBA
       export DBICTEST_FIREBIRD_INTERBASE_PASS=123
 
+      export DBICTEST_FIREBIRD_ODBC_DSN="dbi:ODBC:Driver=Firebird;Dbname=/var/lib/firebird/2.5/data/dbic_test.fdb"
+      export DBICTEST_FIREBIRD_ODBC_USER=SYSDBA
+      export DBICTEST_FIREBIRD_ODBC_PASS=123
+
       break
     fi
 
   done
-
 fi
